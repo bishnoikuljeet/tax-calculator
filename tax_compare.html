@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        label {
+            font-size: 16px;
+        }
+        input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 8px;
+        }
+        .result {
+            background-color: #e1e1e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .result p {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Tax Calculator</h2>
+
+    <div class="input-group">
+        <label for="annualIncome">Annual Income: ₹<span id="annualIncomeValue">700000</span></label>
+        <input type="range" id="annualIncome" min="0" max="10000000" value="700000" step="1">
+        <input type="number" id="annualIncomeInput" value="700000" min="0" step="1">
+    </div>
+
+    <div class="input-group">
+        <label for="salariedEmployee">Are you a salaried employee?</label>
+        <select id="salariedEmployee">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label for="standardDeduction">Standard Deduction: ₹<span id="standardDeductionValue">75000</span></label>
+    </div>
+
+    <div class="result">
+        <h3>Tax Calculation</h3>
+        <p><strong>Taxable Income:</strong> ₹<span id="taxableIncome">0</span></p>
+        <p><strong>Tax (2024-25):</strong> ₹<span id="tax2024">0</span></p>
+        <p><strong>Tax (2025-26):</strong> ₹<span id="tax2025">0</span></p>
+    </div>
+</div>
+
+<script>
+    function calculateTax() {
+        const annualIncome = parseInt(document.getElementById('annualIncome').value);
+        const salariedEmployee = document.getElementById('salariedEmployee').value === 'true';
+        const standardDeduction = salariedEmployee ? 75000 : 0;
+
+        const taxableIncome = Math.max(0, annualIncome - standardDeduction);
+        document.getElementById('standardDeductionValue').innerText = standardDeduction.toLocaleString();
+        document.getElementById('annualIncomeValue').innerText = annualIncome.toLocaleString();
+        document.getElementById('annualIncomeInput').value = annualIncome; // Sync the input textbox
+
+        // Tax for 2024-25
+        let tax_2024_25 = 0;
+        if (taxableIncome > 700000) {
+            tax_2024_25 = Math.max(0, Math.min(taxableIncome - 300000, 400000)) * 0.05
+                + Math.max(0, Math.min(taxableIncome - 700000, 300000)) * 0.10
+                + Math.max(0, Math.min(taxableIncome - 1000000, 200000)) * 0.15
+                + Math.max(0, Math.min(taxableIncome - 1200000, 300000)) * 0.20
+                + Math.max(0, taxableIncome - 1500000) * 0.30;
+			tax_2024_25 = tax_2024_25 * 1.04;
+        }
+
+        // Tax for 2025-26
+        let tax_2025_26 = 0;
+        if (taxableIncome > 1200000) {
+            tax_2025_26 = Math.max(0, Math.min(taxableIncome - 400000, 400000)) * 0.05
+                + Math.max(0, Math.min(taxableIncome - 800000, 400000)) * 0.10
+                + Math.max(0, Math.min(taxableIncome - 1200000, 400000)) * 0.15
+                + Math.max(0, Math.min(taxableIncome - 1600000, 400000)) * 0.20
+                + Math.max(0, Math.min(taxableIncome - 2000000, 400000)) * 0.25
+                + Math.max(0, taxableIncome - 2400000) * 0.30;
+			tax_2025_26 = tax_2025_26 * 1.04;
+        }
+
+        // Update the UI with results
+        document.getElementById('taxableIncome').innerText = taxableIncome.toLocaleString();
+        document.getElementById('tax2024').innerText = tax_2024_25.toLocaleString();
+        document.getElementById('tax2025').innerText = tax_2025_26.toLocaleString();
+    }
+
+    // Disable/Enable standard deduction input based on salaried employee status
+    function toggleStandardDeductionField() {
+        const salariedEmployee = document.getElementById('salariedEmployee').value === 'true';
+        const standardDeductionInput = document.getElementById('standardDeduction');
+        
+        if (salariedEmployee) {
+            standardDeductionInput.disabled = true;
+        } else {
+            standardDeductionInput.disabled = false;
+        }
+    }
+
+    // Event listeners
+    document.getElementById('annualIncome').addEventListener('input', function() {
+        document.getElementById('annualIncomeInput').value = this.value; // Sync range to input
+        calculateTax();
+    });
+
+    document.getElementById('annualIncomeInput').addEventListener('input', function() {
+        let inputVal = parseInt(this.value);
+        if (!isNaN(inputVal)) {
+            document.getElementById('annualIncome').value = inputVal; // Sync input to range
+            calculateTax();
+        } else {
+            this.value = document.getElementById('annualIncome').value; // Restore value if input is invalid
+        }
+    });
+
+    document.getElementById('salariedEmployee').addEventListener('change', function() {
+        calculateTax();
+        toggleStandardDeductionField(); // Disable/Enable based on selection
+    });
+
+    document.getElementById('standardDeduction').addEventListener('input', calculateTax);
+
+    toggleStandardDeductionField(); // Call the toggle function on page load
+    // Initial calculation and toggle
+    calculateTax();
+</script>
+
+</body>
+</html>
